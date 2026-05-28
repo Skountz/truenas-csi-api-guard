@@ -1,0 +1,90 @@
+# truenas-csi-api-guard configuration
+# Copy this file to config.yaml and fill in your values before running deploy.sh.
+
+# Directory where proxy files will be installed on the TrueNAS pool.
+proxy_dir: /mnt/tank/truenas-csi-api-guard
+
+# IP address(es) the proxy listens on.
+# Use "0.0.0.0" to listen on all interfaces, or restrict to a specific IP or list.
+# Examples:
+#   listen_host: "0.0.0.0"
+#   listen_host: "192.168.1.10"
+#   listen_host: ["10.0.0.1", "10.0.0.2"]
+listen_host: "0.0.0.0"
+listen_port: 8443
+
+# Source IP whitelist — only these IPs may connect to the proxy.
+# Omit or set to null to allow all sources.
+#allowed_sources:
+#  - "10.0.0.50"
+
+# TrueNAS certificate — these paths are stable across upgrades.
+cert: /etc/certificates/truenas_default.crt
+key:  /etc/certificates/truenas_default.key
+
+# TrueNAS WebSocket API endpoint (localhost).
+upstream: wss://localhost/api/current
+
+# Only dataset/zvol operations targeting these prefixes are allowed through.
+# All other paths are rejected even if the method is in the allowlist.
+# Must match the pool and dataset path used in your CSI StorageClass.
+# Accepts a single string or a list for multiple StorageClasses.
+# Examples:
+#   allowed_dataset_prefix: "tank/kubernetes"
+#   allowed_dataset_prefix:
+#     - "tank/k8s-nfs"
+#     - "tank/k8s-iscsi"
+allowed_dataset_prefix: "tank/kubernetes"
+
+# Allowlist of JSON-RPC methods the CSI driver is permitted to call.
+# Anything not listed here is rejected — upstream never sees it.
+allowed_methods:
+  # Authentication
+  - auth.login_with_api_key
+  # Keepalive
+  - core.ping
+  # Pool info (read-only, used by CSI driver at startup)
+  - pool.query
+  # Dataset lifecycle
+  - pool.dataset.get_instance
+  - pool.dataset.create
+  - pool.dataset.delete
+  - pool.dataset.query
+  - pool.dataset.update
+  # NFS sharing
+  - sharing.nfs.create
+  - sharing.nfs.delete
+  - sharing.nfs.query
+  # Snapshots
+  - pool.snapshot.clone
+  - pool.snapshot.create
+  - pool.snapshot.delete
+  - pool.snapshot.query
+  # Periodic snapshot tasks (created/cleaned-up per volume by the CSI driver)
+  - pool.snapshottask.create
+  - pool.snapshottask.delete
+  - pool.snapshottask.get_instance
+  - pool.snapshottask.query
+  # iSCSI CHAP authentication
+  - iscsi.auth.create
+  - iscsi.auth.delete
+  - iscsi.auth.query
+  # iSCSI initiator groups
+  - iscsi.initiator.create
+  - iscsi.initiator.delete
+  # iSCSI extents (zvol-backed block storage)
+  - iscsi.extent.create
+  - iscsi.extent.delete
+  - iscsi.extent.query
+  # iSCSI targets
+  - iscsi.target.create
+  - iscsi.target.delete
+  - iscsi.target.query
+  # iSCSI portals
+  - iscsi.portal.query
+  # iSCSI target/extent associations
+  - iscsi.targetextent.create
+  - iscsi.targetextent.delete
+  - iscsi.targetextent.query
+  # ZFS capacity reporting
+  - zfs.resource.query
